@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>교육공무직원 배치 거리산정·비교 프로그램</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        h2 {
+            color: #555;
+            margin-bottom: 20px;
+            margin-top: 30px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.danger {
+            background: #ef5350;
+        }
+
+        button.danger:hover {
+            background: #d32f2f;
+        }
+
+        button.secondary {
+            background: #78909c;
+        }
+
+        button.secondary:hover {
+            background: #546e7a;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #667eea;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9ff;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .route-info {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .time-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .transfer-badge {
+            display: inline-block;
+            background: #fff3e0;
+            color: #f57c00;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .payment-badge {
+            display: inline-block;
+            background: #f3e5f5;
+            color: #7b1fa2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .no-data {
+            color: #999;
+            font-style: italic;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .checkbox-item:hover {
+            background: #e8eaf6;
+        }
+
+        .detail-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 8px;
+            transition: all 0.3s;
+        }
+
+        .detail-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .path-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .path-header {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .path-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .path-type.subway {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .path-type.bus {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .path-type.walk {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .stations-list {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+
+        .station-item {
+            padding: 5px 0;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .station-item::before {
+            content: "🚃";
+            margin-right: 8px;
+        }
+
+        .walk-section .station-item::before {
+            content: "🚶";
+        }
+
+        .station-count {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 교육공무직원 배치 거리산정·비교 프로그램</h1>
+
+        <!-- 출발지 관리 섹션 -->
+        <div class="section">
+            <h2>🏠 출발지 (근로자) 관리</h2>
+
+            <!-- 출발지 추가 폼 -->
+            <div class="form-group">
+                <div class="input-group">
+                    <label for="originLocation">위치</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="originLocation" placeholder="예: 강남역" onkeypress="if(event.key === 'Enter') searchOriginLocation()" style="flex: 1;">
+                        <button class="secondary" onclick="searchOriginLocation()" style="padding: 10px 15px;">🔍 검색</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="originWorkerName">근로자명</label>
+                    <input type="text" id="originWorkerName" placeholder="예: 김철수">
+                </div>
+                <div class="input-group" style="display: none;">
+                    <label for="originLongitude">경도</label>
+                    <input type="number" id="originLongitude" step="0.0001">
+                </div>
+                <div class="input-group" style="display: none;">
+                    <label for="originLatitude">위도</label>
+                    <input type="number" id="originLatitude" step="0.0001">
+                </div>
+                <div class="input-group" style="display: flex; align-items: flex-end;">
+                    <button onclick="addOrigin()">출발지 추가</button>
+                </div>
+            </div>
+
+            <div id="originMessage" class="error" style="display: none;"></div>
+
+            <!-- 출발지 검색 결과 -->
+            <div id="originSearchResults" style="display: none; margin-top: 15px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+                <h4 style="margin-bottom: 10px; color: #555;">검색 결과 (클릭하여 선택):</h4>
+                <div id="originSearchResultsList"></div>
+            </div>
+
+            <!-- 저장된 출발지 목록 -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>위치</th>
+                        <th>근로자명</th>
+                        <th>작업</th>
+                    </tr>
+                </thead>
+                <tbody id="originsTableBody">
+                    <tr>
+                        <td colspan="4" style="text-align: center;">로딩 중...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 목적지 관리 섹션 -->
+        <div class="section">
+            <h2>🏫 목적지 (장소) 관리</h2>
+
+            <!-- 목적지 추가 폼 -->
+            <div class="form-group">
+                <div class="input-group">
+                    <label for="destinationLocation">위치</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="destinationLocation" placeholder="예: 서울시청" onkeypress="if(event.key === 'Enter') searchDestinationLocation()" style="flex: 1;">
+                        <button class="secondary" onclick="searchDestinationLocation()" style="padding: 10px 15px;">🔍 검색</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="destinationPlaceName">장소명</label>
+                    <input type="text" id="destinationPlaceName" placeholder="예: 서울교육청">
+                </div>
+                <div class="input-group" style="display: none;">
+                    <label for="destinationLongitude">경도</label>
+                    <input type="number" id="destinationLongitude" step="0.0001">
+                </div>
+                <div class="input-group" style="display: none;">
+                    <label for="destinationLatitude">위도</label>
+                    <input type="number" id="destinationLatitude" step="0.0001">
+                </div>
+                <div class="input-group" style="display: flex; align-items: flex-end;">
+                    <button onclick="addDestination()">목적지 추가</button>
+                </div>
+            </div>
+
+            <div id="destinationMessage" class="error" style="display: none;"></div>
+
+            <!-- 목적지 검색 결과 -->
+            <div id="destinationSearchResults" style="display: none; margin-top: 15px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+                <h4 style="margin-bottom: 10px; color: #555;">검색 결과 (클릭하여 선택):</h4>
+                <div id="destinationSearchResultsList"></div>
+            </div>
+
+            <!-- 저장된 목적지 목록 -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>위치</th>
+                        <th>장소명</th>
+                        <th>작업</th>
+                    </tr>
+                </thead>
+                <tbody id="destinationsTableBody">
+                    <tr>
+                        <td colspan="4" style="text-align: center;">로딩 중...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 경로 검색 섹션 -->
+        <div class="section">
+            <h2>🔍 경로 검색</h2>
+
+            <div class="form-group">
+                <div class="input-group">
+                    <label>출발지 선택</label>
+                    <div id="originsCheckboxGroup" class="checkbox-group">
+                        로딩 중...
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>목적지 선택</label>
+                    <div id="destinationsCheckboxGroup" class="checkbox-group">
+                        로딩 중...
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button onclick="fetchRoutes()">길찾기 시작</button>
+                <button class="secondary" onclick="downloadExcel()">📊 엑셀 다운로드</button>
+                <button class="secondary" onclick="selectAllOrigins()">출발지 전체 선택</button>
+                <button class="secondary" onclick="selectAllDestinations()">목적지 전체 선택</button>
+                <button class="secondary" onclick="clearAllSelections()">선택 초기화</button>
+            </div>
+
+            <div class="loading" id="loading">경로를 찾고 있습니다...</div>
+
+            <div id="routeMessage" class="error" style="display: none;"></div>
+
+            <div id="results"></div>
+        </div>
+
+        <!-- 세부 경로 모달 -->
+        <div id="detailModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2 class="modal-title" id="modalTitle">세부 경로</h2>
+                <div id="modalBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let allOrigins = [];
+        let allDestinations = [];
+        window.routeData = {};
+
+        // 페이지 로드 시 데이터 목록 가져오기
+        window.onload = function() {
+            loadOrigins();
+            loadDestinations();
+        };
+
+        // 출발지 목록 로드
+        async function loadOrigins() {
+            try {
+                const response = await fetch('http://localhost:5000/api/origins');
+                if (!response.ok) throw new Error('Failed to load origins');
+
+                allOrigins = await response.json();
+                displayOriginsTable();
+                updateOriginSelectors();
+            } catch (error) {
+                showMessage('originMessage', '오류: ' + error.message, 'error');
+            }
+        }
+
+        // 목적지 목록 로드
+        async function loadDestinations() {
+            try {
+                const response = await fetch('http://localhost:5000/api/destinations');
+                if (!response.ok) throw new Error('Failed to load destinations');
+
+                allDestinations = await response.json();
+                displayDestinationsTable();
+                updateDestinationSelectors();
+            } catch (error) {
+                showMessage('destinationMessage', '오류: ' + error.message, 'error');
+            }
+        }
+
+        // 출발지 테이블 표시
+        function displayOriginsTable() {
+            const tbody = document.getElementById('originsTableBody');
+
+            if (allOrigins.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">저장된 출발지가 없습니다.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = allOrigins.map(loc => `
+                <tr>
+                    <td>${loc.id}</td>
+                    <td><strong>${loc.location_name}</strong></td>
+                    <td>${loc.worker_name}</td>
+                    <td>
+                        <button class="danger" onclick="deleteOrigin(${loc.id})">삭제</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 목적지 테이블 표시
+        function displayDestinationsTable() {
+            const tbody = document.getElementById('destinationsTableBody');
+
+            if (allDestinations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">저장된 목적지가 없습니다.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = allDestinations.map(loc => `
+                <tr>
+                    <td>${loc.id}</td>
+                    <td><strong>${loc.location_name}</strong></td>
+                    <td>${loc.place_name}</td>
+                    <td>
+                        <button class="danger" onclick="deleteDestination(${loc.id})">삭제</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 출발지 선택자 업데이트
+        function updateOriginSelectors() {
+            const originsGroup = document.getElementById('originsCheckboxGroup');
+
+            if (allOrigins.length === 0) {
+                originsGroup.innerHTML = '<span class="no-data">사용 가능한 출발지가 없습니다.</span>';
+                return;
+            }
+
+            const originCheckboxes = allOrigins.map(loc => `
+                <label class="checkbox-item">
+                    <input type="checkbox" value="${loc.location_name} (${loc.worker_name})" data-group="origin">
+                    ${loc.location_name} (${loc.worker_name})
+                </label>
+            `).join('');
+
+            originsGroup.innerHTML = originCheckboxes;
+        }
+
+        // 목적지 선택자 업데이트
+        function updateDestinationSelectors() {
+            const destinationsGroup = document.getElementById('destinationsCheckboxGroup');
+
+            if (allDestinations.length === 0) {
+                destinationsGroup.innerHTML = '<span class="no-data">사용 가능한 목적지가 없습니다.</span>';
+                return;
+            }
+
+            const destCheckboxes = allDestinations.map(loc => `
+                <label class="checkbox-item">
+                    <input type="checkbox" value="${loc.location_name} (${loc.place_name})" data-group="destination">
+                    ${loc.location_name} (${loc.place_name})
+                </label>
+            `).join('');
+
+            destinationsGroup.innerHTML = destCheckboxes;
+        }
+
+        // 출발지 추가
+        async function addOrigin() {
+            const location_name = document.getElementById('originLocation').value.trim();
+            const worker_name = document.getElementById('originWorkerName').value.trim();
+            const longitude = parseFloat(document.getElementById('originLongitude').value);
+            const latitude = parseFloat(document.getElementById('originLatitude').value);
+
+            if (!location_name || !worker_name || isNaN(longitude) || isNaN(latitude)) {
+                showMessage('originMessage', '모든 필드를 올바르게 입력해주세요.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/origins', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ location_name, worker_name, longitude, latitude })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to add origin');
+                }
+
+                // 폼 초기화
+                document.getElementById('originLocation').value = '';
+                document.getElementById('originWorkerName').value = '';
+                document.getElementById('originLongitude').value = '';
+                document.getElementById('originLatitude').value = '';
+
+                showMessage('originMessage', '출발지가 추가되었습니다.', 'success');
+
+                // 출발지 목록 새로고침
+                await loadOrigins();
+
+                // 3초 후 메시지 숨김
+                setTimeout(() => {
+                    document.getElementById('originMessage').style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                showMessage('originMessage', '오류: ' + error.message, 'error');
+            }
+        }
+
+        // 목적지 추가
+        async function addDestination() {
+            const location_name = document.getElementById('destinationLocation').value.trim();
+            const place_name = document.getElementById('destinationPlaceName').value.trim();
+            const longitude = parseFloat(document.getElementById('destinationLongitude').value);
+            const latitude = parseFloat(document.getElementById('destinationLatitude').value);
+
+            if (!location_name || !place_name || isNaN(longitude) || isNaN(latitude)) {
+                showMessage('destinationMessage', '모든 필드를 올바르게 입력해주세요.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/destinations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ location_name, place_name, longitude, latitude })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to add destination');
+                }
+
+                // 폼 초기화
+                document.getElementById('destinationLocation').value = '';
+                document.getElementById('destinationPlaceName').value = '';
+                document.getElementById('destinationLongitude').value = '';
+                document.getElementById('destinationLatitude').value = '';
+
+                showMessage('destinationMessage', '목적지가 추가되었습니다.', 'success');
+
+                // 목적지 목록 새로고침
+                await loadDestinations();
+
+                // 3초 후 메시지 숨김
+                setTimeout(() => {
+                    document.getElementById('destinationMessage').style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                showMessage('destinationMessage', '오류: ' + error.message, 'error');
+            }
+        }
+
+        // 출발지 삭제
+        async function deleteOrigin(id) {
+            if (!confirm('정말로 이 출발지를 삭제하시겠습니까?')) return;
+
+            try {
+                const response = await fetch(`http://localhost:5000/api/origins/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to delete origin');
+                }
+
+                showMessage('originMessage', '출발지가 삭제되었습니다.', 'success');
+                await loadOrigins();
+
+                setTimeout(() => {
+                    document.getElementById('originMessage').style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                showMessage('originMessage', '오류: ' + error.message, 'error');
+            }
+        }
+
+        // 목적지 삭제
+        async function deleteDestination(id) {
+            if (!confirm('정말로 이 목적지를 삭제하시겠습니까?')) return;
+
+            try {
+                const response = await fetch(`http://localhost:5000/api/destinations/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to delete destination');
+                }
+
+                showMessage('destinationMessage', '목적지가 삭제되었습니다.', 'success');
+                await loadDestinations();
+
+                setTimeout(() => {
+                    document.getElementById('destinationMessage').style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                showMessage('destinationMessage', '오류: ' + error.message, 'error');
+            }
+        }
+
+        // 경로 검색
+        async function fetchRoutes() {
+            const loading = document.getElementById('loading');
+            const messageDiv = document.getElementById('routeMessage');
+            const resultsDiv = document.getElementById('results');
+
+            // 선택된 출발지와 목적지 가져오기
+            const origins = Array.from(document.querySelectorAll('input[data-group="origin"]:checked'))
+                .map(cb => cb.value);
+            const destinations = Array.from(document.querySelectorAll('input[data-group="destination"]:checked'))
+                .map(cb => cb.value);
+
+            if (origins.length === 0) {
+                showMessage('routeMessage', '최소한 하나의 출발지를 선택해주세요.', 'error');
+                return;
+            }
+
+            if (destinations.length === 0) {
+                showMessage('routeMessage', '최소한 하나의 목적지를 선택해주세요.', 'error');
+                return;
+            }
+
+            loading.classList.add('show');
+            messageDiv.style.display = 'none';
+            resultsDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('http://localhost:5000/api/transit-routes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ origins, destinations })
+                });
+
+                if (!response.ok) {
+                    throw new Error('서버 오류가 발생했습니다.');
+                }
+
+                const data = await response.json();
+                displayResults(data, origins, destinations);
+
+            } catch (error) {
+                showMessage('routeMessage', '오류: ' + error.message, 'error');
+            } finally {
+                loading.classList.remove('show');
+            }
+        }
+
+        // 결과 표시
+        function displayResults(data, origins, destinations) {
+            const resultsDiv = document.getElementById('results');
+
+            // 데이터를 전역 변수로 저장
+            window.routeData = {};
+            for (const origin of origins) {
+                for (const dest of destinations) {
+                    if (data[origin] && data[origin][dest]) {
+                        const routeKey = `${origin}-${dest}`;
+                        window.routeData[routeKey] = data[origin][dest].detailedPaths;
+                        window.routeData[`${routeKey}-title`] = `${origin} → ${dest}`;
+                    }
+                }
+            }
+
+            let html = '<table>';
+            html += '<thead><tr><th>출발지 → 목적지</th>';
+
+            for (const origin of origins) {
+                html += `<th>${origin} (출발)</th>`;
+            }
+
+            html += '</tr></thead><tbody>';
+
+            for (const dest of destinations) {
+                html += `<tr><td><strong>${dest} (도착)</strong></td>`;
+
+                for (const origin of origins) {
+                    html += '<td>';
+
+                    if (data[origin] && data[origin][dest]) {
+                        const info = data[origin][dest];
+                        const routeKey = `${origin}-${dest}`;
+                        html += `<div class="route-info">`;
+                        html += `<div>${info.route}</div>`;
+                        html += `<div style="margin-top: 8px;">`;
+                        html += `<span class="time-badge">${info.time}분</span>`;
+                        html += `<span class="transfer-badge">환승 ${info.transfer}회</span>`;
+                        html += `<span class="payment-badge">${info.payment}원</span>`;
+                        html += `</div>`;
+                        html += `<button class="detail-btn" onclick="showDetail('${routeKey}')">세부 경로 보기</button>`;
+                        html += `</div>`;
+                    } else {
+                        html += '<span class="no-data">경로를 찾을 수 없음</span>';
+                    }
+
+                    html += '</td>';
+                }
+
+                html += '</tr>';
+            }
+
+            html += '</tbody></table>';
+            resultsDiv.innerHTML = html;
+        }
+
+        // 세부 경로 보기
+        function showDetail(routeKey) {
+            const modal = document.getElementById('detailModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            const paths = window.routeData[routeKey];
+            const title = window.routeData[routeKey + '-title'];
+
+            if (!paths || !title) {
+                alert('세부 경로 정보를 찾을 수 없습니다.');
+                return;
+            }
+
+            modalTitle.textContent = title;
+
+            let html = '';
+
+            for (const path of paths) {
+                html += '<div class="path-section">';
+
+                if (path.type === '도보') {
+                    html += `<div class="path-header">`;
+                    html += `<span class="path-type walk">🚶 도보</span>`;
+                    html += `${(path.distance / 1000).toFixed(1)}km`;
+                    html += `</div>`;
+                } else if (path.type && path.name) {
+                    const typeClass = path.type === '지하철' ? 'subway' : 'bus';
+                    const icon = path.type === '지하철' ? '🚇' : '🚌';
+
+                    html += `<div class="path-header">`;
+                    html += `<span class="path-type ${typeClass}">${icon} ${path.type}</span>`;
+                    html += `<span>${path.name}</span>`;
+                    html += `</div>`;
+
+                    if (path.stations && path.stations.length > 0) {
+                        const validStations = path.stations.filter(s => s && s.name && s.name.trim() !== '');
+
+                        if (validStations.length > 0) {
+                            html += `<div class="stations-list">`;
+                            for (const station of validStations) {
+                                html += `<div class="station-item">${station.name}</div>`;
+                            }
+                            html += `</div>`;
+                            html += `<div class="station-count">총 ${validStations.length}개 정거장</div>`;
+                        } else if (path.stationCount > 0) {
+                            html += `<div class="station-count">총 ${path.stationCount}개 정거장</div>`;
+                        } else {
+                            html += `<div class="station-count">정거장 정보 없음</div>`;
+                        }
+                    } else if (path.stationCount > 0) {
+                        html += `<div class="station-count">총 ${path.stationCount}개 정거장</div>`;
+                    } else {
+                        html += `<div class="station-count">정거장 정보 없음</div>`;
+                    }
+                } else {
+                    continue;
+                }
+
+                html += '</div>';
+            }
+
+            modalBody.innerHTML = html;
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // 선택 도우미 함수들
+        function selectAllOrigins() {
+            document.querySelectorAll('input[data-group="origin"]').forEach(cb => cb.checked = true);
+        }
+
+        function selectAllDestinations() {
+            document.querySelectorAll('input[data-group="destination"]').forEach(cb => cb.checked = true);
+        }
+
+        function clearAllSelections() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+
+        // 메시지 표시 함수
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            element.textContent = message;
+            element.className = type;
+            element.style.display = 'block';
+        }
+
+        // 출발지 위치 검색 (OpenStreetMap Nominatim API)
+        async function searchOriginLocation() {
+            const locationName = document.getElementById('originLocation').value.trim();
+            const searchResultsDiv = document.getElementById('originSearchResults');
+            const searchResultsList = document.getElementById('originSearchResultsList');
+
+            if (!locationName) {
+                showMessage('originMessage', '위치 이름을 입력해주세요.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationName + ' Korea')}&limit=5&countrycodes=kr`);
+
+                if (!response.ok) {
+                    throw new Error('검색 실패');
+                }
+
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    searchResultsList.innerHTML = '<div style="color: #999;">검색 결과가 없습니다. 더 구체적인 이름을 입력해보세요.</div>';
+                    searchResultsDiv.style.display = 'block';
+                    return;
+                }
+
+                searchResultsList.innerHTML = data.map((place, index) => `
+                    <div class="search-result-item" onclick="selectOriginLocation(${place.lat}, ${place.lon}, '${place.display_name.replace(/'/g, "\\'")}')"
+                         style="padding: 10px; margin: 5px 0; background: white; border-radius: 6px; cursor: pointer; transition: background 0.2s;"
+                         onmouseover="this.style.background='#e8eaf6'" onmouseout="this.style.background='white'">
+                        <div style="font-weight: bold; color: #333;">${place.display_name.split(',')[0]}</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 3px;">${place.display_name}</div>
+                    </div>
+                `).join('');
+
+                searchResultsDiv.style.display = 'block';
+                showMessage('originMessage', '', 'success');
+                document.getElementById('originMessage').style.display = 'none';
+
+            } catch (error) {
+                console.error('Search error:', error);
+                showMessage('originMessage', '검색 오류: ' + error.message, 'error');
+            }
+        }
+
+        // 목적지 위치 검색 (OpenStreetMap Nominatim API)
+        async function searchDestinationLocation() {
+            const locationName = document.getElementById('destinationLocation').value.trim();
+            const searchResultsDiv = document.getElementById('destinationSearchResults');
+            const searchResultsList = document.getElementById('destinationSearchResultsList');
+
+            if (!locationName) {
+                showMessage('destinationMessage', '위치 이름을 입력해주세요.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationName + ' Korea')}&limit=5&countrycodes=kr`);
+
+                if (!response.ok) {
+                    throw new Error('검색 실패');
+                }
+
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    searchResultsList.innerHTML = '<div style="color: #999;">검색 결과가 없습니다. 더 구체적인 이름을 입력해보세요.</div>';
+                    searchResultsDiv.style.display = 'block';
+                    return;
+                }
+
+                searchResultsList.innerHTML = data.map((place, index) => `
+                    <div class="search-result-item" onclick="selectDestinationLocation(${place.lat}, ${place.lon}, '${place.display_name.replace(/'/g, "\\'")}')"
+                         style="padding: 10px; margin: 5px 0; background: white; border-radius: 6px; cursor: pointer; transition: background 0.2s;"
+                         onmouseover="this.style.background='#e8eaf6'" onmouseout="this.style.background='white'">
+                        <div style="font-weight: bold; color: #333;">${place.display_name.split(',')[0]}</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 3px;">${place.display_name}</div>
+                    </div>
+                `).join('');
+
+                searchResultsDiv.style.display = 'block';
+                showMessage('destinationMessage', '', 'success');
+                document.getElementById('destinationMessage').style.display = 'none';
+
+            } catch (error) {
+                console.error('Search error:', error);
+                showMessage('destinationMessage', '검색 오류: ' + error.message, 'error');
+            }
+        }
+
+        // 출발지 검색 결과 선택
+        function selectOriginLocation(lat, lon, displayName) {
+            document.getElementById('originLatitude').value = parseFloat(lat).toFixed(4);
+            document.getElementById('originLongitude').value = parseFloat(lon).toFixed(4);
+
+            document.getElementById('originSearchResults').style.display = 'none';
+
+            showMessage('originMessage', `선택된 위치: ${displayName.substring(0, 50)}...`, 'success');
+
+            setTimeout(() => {
+                document.getElementById('originMessage').style.display = 'none';
+            }, 3000);
+        }
+
+        // 목적지 검색 결과 선택
+        function selectDestinationLocation(lat, lon, displayName) {
+            document.getElementById('destinationLatitude').value = parseFloat(lat).toFixed(4);
+            document.getElementById('destinationLongitude').value = parseFloat(lon).toFixed(4);
+
+            document.getElementById('destinationSearchResults').style.display = 'none';
+
+            showMessage('destinationMessage', `선택된 위치: ${displayName.substring(0, 50)}...`, 'success');
+
+            setTimeout(() => {
+                document.getElementById('destinationMessage').style.display = 'none';
+            }, 3000);
+        }
+
+        // 엑셀 다운로드 (CSV 형식)
+        function downloadExcel() {
+            const routeData = window.routeData;
+            const results = document.getElementById('results');
+
+            if (!results || results.innerHTML === '') {
+                alert('먼저 경로 검색을 실행해주세요.');
+                return;
+            }
+
+            // CSV 데이터 생성
+            let csv = '\uFEFF'; // UTF-8 BOM
+            csv += '출발지,목적지,소요시간(분),환승횟수,요금(원)\n';
+
+            // 테이블에서 데이터 추출
+            const table = results.querySelector('table');
+            if (table) {
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    const destCell = row.querySelector('td:first-child strong');
+                    if (!destCell) return;
+
+                    const dest = destCell.textContent.replace(' (도착)', '').trim();
+                    const cells = row.querySelectorAll('td');
+
+                    // 첫 번째 셀은 목적지 이름이므로 건너뜀
+                    for (let i = 1; i < cells.length; i++) {
+                        const cell = cells[i];
+                        const routeInfo = cell.querySelector('.route-info');
+                        if (routeInfo) {
+                            // 출발지 이름 추출 (이전 행의 헤더에서)
+                            const headerCell = table.querySelectorAll(`thead th:nth-child(${i + 1})`)[0];
+                            const origin = headerCell ? headerCell.textContent.replace(' (출발)', '').trim() : '';
+
+                            const timeText = routeInfo.querySelector('.time-badge')?.textContent || '';
+                            const transferText = routeInfo.querySelector('.transfer-badge')?.textContent || '';
+                            const paymentText = routeInfo.querySelector('.payment-badge')?.textContent || '';
+
+                            const time = timeText.replace('분', '').trim();
+                            const transfer = transferText.replace('환승 ', '').replace('회', '').trim();
+                            const payment = paymentText.replace('원', '').replace(/,/g, '').trim();
+
+                            csv += `${origin},${dest},${time},${transfer},${payment}\n`;
+                        }
+                    }
+                });
+            }
+
+            // 파일 다운로드
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', '교육공무직원_배치_거리산정_결과.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

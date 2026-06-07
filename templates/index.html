@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대중교통 길찾기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        h2 {
+            color: #555;
+            margin-bottom: 20px;
+            margin-top: 30px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.danger {
+            background: #ef5350;
+        }
+
+        button.danger:hover {
+            background: #d32f2f;
+        }
+
+        button.secondary {
+            background: #78909c;
+        }
+
+        button.secondary:hover {
+            background: #546e7a;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #667eea;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9ff;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .route-info {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .time-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .transfer-badge {
+            display: inline-block;
+            background: #fff3e0;
+            color: #f57c00;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .payment-badge {
+            display: inline-block;
+            background: #f3e5f5;
+            color: #7b1fa2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .no-data {
+            color: #999;
+            font-style: italic;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .checkbox-item:hover {
+            background: #e8eaf6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚌 대중교통 길찾기</h1>
+
+        <!-- 위치 관리 섹션 -->
+        <div class="section">
+            <h2>📍 위치 관리</h2>
+
+            <!-- 위치 추가 폼 -->
+            <div class="form-group">
+                <div class="input-group">
+                    <label for="locationName">위치 이름</label>
+                    <input type="text" id="locationName" placeholder="예: 강남역">
+                </div>
+                <div class="input-group">
+                    <label for="longitude">경도 (Longitude)</label>
+                    <input type="number" id="longitude" step="0.0001" placeholder="예: 127.0">
+                </div>
+                <div class="input-group">
+                    <label for="latitude">위도 (Latitude)</label>
+                    <input type="number" id="latitude" step="0.0001" placeholder="예: 37.5">
+                </div>
+                <div class="input-group" style="display: flex; align-items: flex-end;">
+                    <button onclick="addLocation()">위치 추가</button>
+                </div>
+            </div>
+
+            <div id="locationMessage" class="error" style="display: none;"></div>
+
+            <!-- 저장된 위치 목록 -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>이름</th>
+                        <th>경도</th>
+                        <th>위도</th>
+                        <th>작업</th>
+                    </tr>
+                </thead>
+                <tbody id="locationsTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center;">로딩 중...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 경로 검색 섹션 -->
+        <div class="section">
+            <h2>🔍 경로 검색</h2>
+
+            <div class="form-group">
+                <div class="input-group">
+                    <label>출발지 선택</label>
+                    <div id="originsCheckboxGroup" class="checkbox-group">
+                        로딩 중...
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>목적지 선택</label>
+                    <div id="destinationsCheckboxGroup" class="checkbox-group">
+                        로딩 중...
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button onclick="fetchRoutes()">길찾기 시작</button>
+                <button class="secondary" onclick="selectAllOrigins()">출발지 전체 선택</button>
+                <button class="secondary" onclick="selectAllDestinations()">목적지 전체 선택</button>
+                <button class="secondary" onclick="clearAllSelections()">선택 초기화</button>
+            </div>
+
+            <div class="loading" id="loading">경로를 찾고 있습니다...</div>
+
+            <div id="routeMessage" class="error" style="display: none;"></div>
+
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let allLocations = [];
+
+        // 페이지 로드 시 위치 목록 가져오기
+        window.onload = function() {
+            loadLocations();
+        };
+
+        // 위치 목록 로드
+        async function loadLocations() {
+            try {
+                const response = await fetch('http://localhost:5000/api/locations');
+                if (!response.ok) throw new Error('Failed to load locations');
+
+                allLocations = await response.json();
+                displayLocationsTable();
+                updateLocationSelectors();
+            } catch (error) {
+                showMessage('locationMessage', '오류: ' + error.message, 'error');
+            }
+        }
+
+        // 위치 테이블 표시
+        function displayLocationsTable() {
+            const tbody = document.getElementById('locationsTableBody');
+
+            if (allLocations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">저장된 위치가 없습니다.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = allLocations.map(loc => `
+                <tr>
+                    <td>${loc.id}</td>
+                    <td><strong>${loc.name}</strong></td>
+                    <td>${loc.longitude}</td>
+                    <td>${loc.latitude}</td>
+                    <td>
+                        <button class="danger" onclick="deleteLocation(${loc.id})">삭제</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 위치 선택자 업데이트
+        function updateLocationSelectors() {
+            const originsGroup = document.getElementById('originsCheckboxGroup');
+            const destinationsGroup = document.getElementById('destinationsCheckboxGroup');
+
+            if (allLocations.length === 0) {
+                originsGroup.innerHTML = '<span class="no-data">사용 가능한 위치가 없습니다.</span>';
+                destinationsGroup.innerHTML = '<span class="no-data">사용 가능한 위치가 없습니다.</span>';
+                return;
+            }
+
+            const checkboxes = allLocations.map(loc => `
+                <label class="checkbox-item">
+                    <input type="checkbox" value="${loc.name}" data-group="origin">
+                    ${loc.name}
+                </label>
+            `).join('');
+
+            originsGroup.innerHTML = checkboxes;
+            destinationsGroup.innerHTML = checkboxes.replace('data-group="origin"', 'data-group="destination"');
+        }
+
+        // 위치 추가
+        async function addLocation() {
+            const name = document.getElementById('locationName').value.trim();
+            const longitude = parseFloat(document.getElementById('longitude').value);
+            const latitude = parseFloat(document.getElementById('latitude').value);
+
+            if (!name || isNaN(longitude) || isNaN(latitude)) {
+                showMessage('locationMessage', '모든 필드를 올바르게 입력해주세요.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/locations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, longitude, latitude })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to add location');
+                }
+
+                // 폼 초기화
+                document.getElementById('locationName').value = '';
+                document.getElementById('longitude').value = '';
+                document.getElementById('latitude').value = '';
+
+                showMessage('locationMessage', '위치가 추가되었습니다.', 'success');
+
+                // 위치 목록 새로고침
+                await loadLocations();
+
+                // 3초 후 메시지 숨김
+                setTimeout(() => {
+                    document.getElementById('locationMessage').style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                showMessage('locationMessage', '오류: ' + error.message, 'error');
+            }
+        }
+
+        // 위치 삭제
+        async function deleteLocation(id) {
+            if (!confirm('정말로 이 위치를 삭제하시겠습니까?')) return;
+
+            try {
+                const response = await fetch(`http://localhost:5000/api/locations/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to delete location');
+                }
+
+                showMessage('locationMessage', '위치가 삭제되었습니다.', 'success');
+                await loadLocations();
+
+                setTimeout(() => {
+                    document.getElementById('locationMessage').style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                showMessage('locationMessage', '오류: ' + error.message, 'error');
+            }
+        }
+
+        // 경로 검색
+        async function fetchRoutes() {
+            const loading = document.getElementById('loading');
+            const messageDiv = document.getElementById('routeMessage');
+            const resultsDiv = document.getElementById('results');
+
+            // 선택된 출발지와 목적지 가져오기
+            const origins = Array.from(document.querySelectorAll('input[data-group="origin"]:checked'))
+                .map(cb => cb.value);
+            const destinations = Array.from(document.querySelectorAll('input[data-group="destination"]:checked'))
+                .map(cb => cb.value);
+
+            if (origins.length === 0) {
+                showMessage('routeMessage', '최소한 하나의 출발지를 선택해주세요.', 'error');
+                return;
+            }
+
+            if (destinations.length === 0) {
+                showMessage('routeMessage', '최소한 하나의 목적지를 선택해주세요.', 'error');
+                return;
+            }
+
+            loading.classList.add('show');
+            messageDiv.style.display = 'none';
+            resultsDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('http://localhost:5000/api/transit-routes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ origins, destinations })
+                });
+
+                if (!response.ok) {
+                    throw new Error('서버 오류가 발생했습니다.');
+                }
+
+                const data = await response.json();
+                displayResults(data, origins, destinations);
+
+            } catch (error) {
+                showMessage('routeMessage', '오류: ' + error.message, 'error');
+            } finally {
+                loading.classList.remove('show');
+            }
+        }
+
+        // 결과 표시
+        function displayResults(data, origins, destinations) {
+            const resultsDiv = document.getElementById('results');
+
+            let html = '<table>';
+            html += '<thead><tr><th>목적지 \\ 출발지</th>';
+
+            for (const origin of origins) {
+                html += `<th>${origin}</th>`;
+            }
+
+            html += '</tr></thead><tbody>';
+
+            for (const dest of destinations) {
+                html += `<tr><td><strong>${dest}</strong></td>`;
+
+                for (const origin of origins) {
+                    html += '<td>';
+
+                    if (data[origin] && data[origin][dest]) {
+                        const info = data[origin][dest];
+                        html += `<div class="route-info">`;
+                        html += `<div>${info.route}</div>`;
+                        html += `<div style="margin-top: 8px;">`;
+                        html += `<span class="time-badge">${info.time}분</span>`;
+                        html += `<span class="transfer-badge">환승 ${info.transfer}회</span>`;
+                        html += `<span class="payment-badge">${info.payment}원</span>`;
+                        html += `</div>`;
+                        html += `</div>`;
+                    } else {
+                        html += '<span class="no-data">경로를 찾을 수 없음</span>';
+                    }
+
+                    html += '</td>';
+                }
+
+                html += '</tr>';
+            }
+
+            html += '</tbody></table>';
+            resultsDiv.innerHTML = html;
+        }
+
+        // 선택 도우미 함수들
+        function selectAllOrigins() {
+            document.querySelectorAll('input[data-group="origin"]').forEach(cb => cb.checked = true);
+        }
+
+        function selectAllDestinations() {
+            document.querySelectorAll('input[data-group="destination"]').forEach(cb => cb.checked = true);
+        }
+
+        function clearAllSelections() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+
+        // 메시지 표시 함수
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = type;
+            element.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
