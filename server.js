@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -102,8 +103,7 @@ function getAllDestinations() {
     return destinations;
 }
 
-//const API_KEY = "FmrkIPHhVwiUl9OI7jywL/qTflvGczMDufpgfFJCoV4";
-const API_KEY = "ApnqJIS/OpqXWoNO/YKQVzLohpALmesEvl4taqpQ4NY";
+const API_KEY = process.env.ODSAY_API_KEY || "ApnqJIS/OpqXWoNO/YKQVzLohpALmesEvl4taqpQ4NY";
 // 출발지 관리 API 엔드포인트
 
 // 모든 출발지 조회
@@ -114,6 +114,108 @@ app.get('/api/origins', (req, res) => {
     } catch (error) {
         console.error('Error fetching origins:', error);
         res.status(500).json({ error: 'Failed to fetch origins' });
+    }
+});
+
+// 주소 검색 API 엔드포인트 (카카오 우편번호 서비스 + OpenStreetMap 지오코딩)
+// 카카오 우편번호 서비스로 주소 검색 후 OpenStreetMap Nominatim API로 좌표 변환
+
+// 주소를 좌표로 변환하는 함수 (OpenStreetMap Nominatim API)
+async function geocodeAddress(address) {
+    try {
+        const response = await axios.get('https://nominatim.openstreetmap.org/search', {
+            params: {
+                format: 'json',
+                q: address,
+                countrycodes: 'kr',
+                limit: 1
+            },
+            headers: {
+                'User-Agent': 'Odsay-Transit-Route-Finder/1.0'
+            }
+        });
+
+        if (response.data && response.data.length > 0) {
+            const data = response.data[0];
+            return {
+                longitude: parseFloat(data.lon),
+                latitude: parseFloat(data.lat),
+                formatted_address: data.display_name
+            };
+        } else {
+            throw new Error('좌표를 찾을 수 없습니다');
+        }
+    } catch (error) {
+        console.error('Geocoding error:', error.message);
+        throw new Error('주소 좌표 변환 실패: ' + error.message);
+    }
+}
+
+// 출발지 주소 검색 결과 처리 엔드포인트
+app.post('/api/origins/search', async (req, res) => {
+    const { zonecode, address, roadAddress, buildingName } = req.body;
+
+    if (!address && !roadAddress) {
+        return res.status(400).json({ error: '주소 정보가 필요합니다' });
+    }
+
+    try {
+        // 지오코딩으로 좌표 변환
+        const searchAddress = roadAddress || address;
+        const coords = await geocodeAddress(searchAddress);
+
+        const stmt = db.prepare('INSERT INTO origins (location_name, worker_name, longitude, latitude) VALUES (?, ?, ?, ?)');
+        const result = stmt.run(
+            searchAddress,
+            buildingName || '검색한 위치',
+            coords.longitude,
+            coords.latitude
+        );
+
+        res.json({
+            id: result.lastInsertRowid,
+            location_name: searchAddress,
+            worker_name: buildingName || '검색한 위치',
+            longitude: coords.longitude,
+            latitude: coords.latitude
+        });
+    } catch (error) {
+        console.error('Error adding origin:', error);
+        res.status(500).json({ error: error.message || 'Failed to add origin' });
+    }
+});
+
+// 목적지 주소 검색 결과 처리 엔드포인트
+app.post('/api/destinations/search', async (req, res) => {
+    const { zonecode, address, roadAddress, buildingName } = req.body;
+
+    if (!address && !roadAddress) {
+        return res.status(400).json({ error: '주소 정보가 필요합니다' });
+    }
+
+    try {
+        // 지오코딩으로 좌표 변환
+        const searchAddress = roadAddress || address;
+        const coords = await geocodeAddress(searchAddress);
+
+        const stmt = db.prepare('INSERT INTO destinations (location_name, place_name, longitude, latitude) VALUES (?, ?, ?, ?)');
+        const result = stmt.run(
+            searchAddress,
+            buildingName || '검색한 장소',
+            coords.longitude,
+            coords.latitude
+        );
+
+        res.json({
+            id: result.lastInsertRowid,
+            location_name: searchAddress,
+            place_name: buildingName || '검색한 장소',
+            longitude: coords.longitude,
+            latitude: coords.latitude
+        });
+    } catch (error) {
+        console.error('Error adding destination:', error);
+        res.status(500).json({ error: error.message || 'Failed to add destination' });
     }
 });
 
